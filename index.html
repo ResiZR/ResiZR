@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>ResiZR – Stretch & Resize</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='75%25'%3E%3Cstop offset='0' stop-color='%2339ff14'/%3E%3Cstop offset='.55' stop-color='%2332f012'/%3E%3Cstop offset='1' stop-color='%232a9a10'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='18' fill='url(%23g)'/%3E%3Cpath id='a' d='M0-29.5 11.5-7.5H5V29.5H-5V-7.5H-11.5Z' transform='translate(34.5 41.8) rotate(32)'/%3E%3Cpath d='M0-29.5 11.5-7.5H5V29.5H-5V-7.5H-11.5Z' transform='translate(65.5 58.2) rotate(212)'/%3E%3C/svg%3E">
+<style>
+:root{--g:#39ff14;--gd:rgba(57,255,20,.13);--ln:rgba(255,255,255,.14);--mu:rgba(255,255,255,.55);--p1:#0a0a0a;--p2:#141414}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+svg{width:1em;height:1em;fill:currentColor;flex:none}
+
+.top{height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--ln)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:19px}
+.brand b{color:var(--g)}
+.logo{width:32px;height:32px;border-radius:9px;overflow:hidden;display:block;flex:none;box-shadow:0 0 14px rgba(57,255,20,.3)}
+.logo svg,.hero-logo svg{width:100%;height:100%;display:block}
+.hero-logo{width:84px;height:84px;border-radius:22px;overflow:hidden;margin:0 auto 18px;box-shadow:0 0 50px rgba(57,255,20,.35)}
+.fname{flex:1;min-width:0;text-align:center;color:var(--mu);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acts{margin-left:auto;display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:8px;font-weight:600;font-size:14px;border:1px solid var(--ln);background:var(--p2)}
+.btn:hover{border-color:var(--g)}
+.export{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:8px;font-weight:800;font-size:14px;background:var(--g);color:#000}
+.export:hover:not(:disabled){filter:brightness(1.1)}
+.export:disabled{opacity:.3;cursor:not-allowed}
+.export svg,.btn svg{font-size:17px}
+
+#landing{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 18px;text-align:center;background:radial-gradient(ellipse at 50% 0,rgba(57,255,20,.11),transparent 62%)}
+#landing h1{margin:0 0 10px;font-size:clamp(28px,6vw,52px);line-height:1.05;font-weight:900;letter-spacing:-1px}
+#landing h1 em{font-style:normal;color:var(--g)}
+.sub{margin:0 0 26px;color:var(--mu);font-size:clamp(14px,2vw,17px);max-width:580px;line-height:1.5}
+.drop{width:min(720px,100%);min-height:min(320px,44vh);border:2px dashed rgba(57,255,20,.45);border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:30px 20px;cursor:pointer;outline:none;transition:background .2s,border-color .2s}
+.drop:hover,.drop:focus-visible,.drop.drag{border-color:var(--g);background:var(--gd)}
+.drop .ic{width:78px;height:78px;border-radius:50%;background:var(--gd);color:var(--g);display:grid;place-items:center;font-size:36px;border:1px solid rgba(57,255,20,.4)}
+.drop b{font-size:clamp(17px,3vw,22px)}
+.drop span{color:var(--mu);font-size:14px}
+.pill{margin-top:6px;background:var(--g);color:#000;font-weight:800;border-radius:999px;padding:10px 24px;font-size:14px}
+.feats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:24px}
+.feats i{font-style:normal;font-size:12.5px;border:1px solid var(--ln);padding:6px 12px;border-radius:999px;background:var(--p1)}
+.feats i::before{content:"●";color:var(--g);margin-right:6px;font-size:9px;vertical-align:1px}
+.priv{margin-top:18px;color:var(--mu);font-size:12px;opacity:.7}
+
+#workspace{flex:1;min-height:0;display:flex;flex-direction:column}
+body.busy #workspace{display:none}
+.stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;contain:layout paint;
+  background:#050505 radial-gradient(circle,#1a1a1a 1px,transparent 1.5px) 0 0/22px 22px}
+.info{position:absolute;left:10px;top:10px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.info span{background:#000;border:1px solid var(--ln);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.info b{color:var(--g)}
+.box{position:relative;flex:none;box-shadow:0 0 0 2px var(--g)}
+.box.anim{transition:width .26s cubic-bezier(.3,.8,.3,1),height .26s cubic-bezier(.3,.8,.3,1)}
+.media{position:absolute;inset:0;overflow:hidden;background:#111;cursor:pointer;contain:strict}
+.media>*{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.h{position:absolute;width:34px;height:34px;touch-action:none;z-index:2}
+.h::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--g);border:2px solid #000;border-radius:4px;width:15px;height:15px}
+.h.act::before{transform:translate(-50%,-50%) scale(1.3)}
+.h.nw{left:-17px;top:-17px;cursor:nwse-resize}.h.ne{right:-17px;top:-17px;cursor:nesw-resize}
+.h.sw{left:-17px;bottom:-17px;cursor:nesw-resize}.h.se{right:-17px;bottom:-17px;cursor:nwse-resize}
+.h.n,.h.s{left:17px;right:17px;width:auto;cursor:ns-resize;z-index:1}.h.n{top:-17px}.h.s{bottom:-17px}
+.h.w,.h.e{top:17px;bottom:17px;height:auto;cursor:ew-resize;z-index:1}.h.w{left:-17px}.h.e{right:-17px}
+.h.n::before,.h.s::before{width:30px;height:7px}.h.w::before,.h.e::before{width:7px;height:30px}
+
+.ratios{flex:none;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--p1);border-top:1px solid var(--ln);overflow-x:auto;scrollbar-width:none}
+.ratios::-webkit-scrollbar{display:none}
+.sep{width:1px;align-self:stretch;background:var(--ln);margin:0 4px;flex:none}
+.rb{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:62px;padding:8px 10px;border-radius:10px;border:1px solid var(--ln);background:var(--p2);font-size:12px;font-weight:700}
+.rb:hover{border-color:rgba(255,255,255,.4)}
+.rb.dim{color:var(--mu)}
+.rb.on{border-color:var(--g);color:var(--g);background:var(--gd)}
+.ri{display:block;border:2px solid currentColor;border-radius:3px}
+.rbi{height:22px;display:grid;place-items:center}
+
+.vpanel{flex:none;background:#050505;border-top:1px solid var(--ln);padding:12px 14px calc(14px + env(safe-area-inset-bottom))}
+.vrow{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.play{width:42px;height:42px;border-radius:50%;background:#fff;color:#000;display:grid;place-items:center;font-size:22px;flex:none}
+.play:hover{background:var(--g)}
+.time{font-variant-numeric:tabular-nums;font-size:13px;font-weight:700}
+.time span{color:var(--mu);font-weight:500}
+.vol{margin-left:auto;display:flex;align-items:center;gap:8px}
+.vol button{font-size:22px;display:grid;place-items:center;width:34px;height:34px;border-radius:8px}
+.vol button:hover{color:var(--g)}
+.vol input{width:110px}
+.track{position:relative;height:54px;margin:6px 0 2px;touch-action:none;cursor:pointer;user-select:none}
+.strip{position:absolute;inset:0;display:flex;border-radius:8px;overflow:hidden;border:1.5px solid rgba(255,255,255,.2);background:#111}
+.strip canvas{flex:1;min-width:0;height:100%;background:#181818}
+.ph{position:absolute;top:-7px;bottom:-7px;left:0;width:3px;margin-left:-1.5px;background:#fff;border-radius:2px;pointer-events:none}
+.ph::before{content:"";position:absolute;top:-3px;left:50%;width:13px;height:13px;transform:translateX(-50%);border-radius:50%;background:var(--g);border:2px solid #fff}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;outline:none;cursor:pointer;margin:0;background:linear-gradient(to right,var(--g) var(--p,100%),#333 var(--p,100%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 3px rgba(57,255,20,.35)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#fff;border:0}
+
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:16px}
+body:not(.busy) .modal{backdrop-filter:blur(4px)}
+body.busy .modal{background:#000}
+.sheet{width:min(560px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--p1);border:1px solid rgba(255,255,255,.18);border-radius:18px;overflow:hidden}
+.sh{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--ln)}
+.sh h2{margin:0;font-size:18px}
+.x{width:34px;height:34px;border-radius:8px;font-size:20px;color:var(--mu)}
+.x:hover{background:var(--p2);color:#fff}
+.sb{padding:18px;overflow:auto}
+.sf{padding:14px 18px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--ln)}
+.sf .export{width:100%;padding:13px;font-size:16px}
+.ext{display:flex;gap:14px;align-items:center;margin-bottom:18px}
+.pv{width:110px;height:110px;flex:none;display:grid;place-items:center;background:#000;border:1px solid var(--ln);border-radius:10px}
+.pv canvas{max-width:100%;max-height:100%}
+.exi{min-width:0}
+.exi .n{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exi .m{color:var(--mu);font-size:13px;margin-top:5px;line-height:1.55}
+.exi .m b{color:var(--g)}
+.field{margin-bottom:16px}
+.field>label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu);margin-bottom:8px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 15px;border-radius:9px;border:1px solid var(--ln);background:var(--p2);font-weight:700;font-size:14px}
+.chip:hover{border-color:rgba(255,255,255,.4)}
+.chip.on{border-color:var(--g);color:var(--g);background:var(--gd)}
+.note{font-size:12px;color:var(--mu);line-height:1.5}
+.note.hl{color:#fff;border-left:3px solid var(--g);padding-left:10px;margin-top:8px}
+.qrow{display:flex;gap:12px;align-items:center}.qrow input{flex:1}.qrow span{width:42px;text-align:right;font-weight:700;color:var(--g);font-size:14px}
+.center{text-align:center;padding:12px 0}
+.bar{height:10px;background:#1c1c1c;border-radius:10px;overflow:hidden;margin:18px 0 10px}
+.bar i{display:block;height:100%;width:100%;background:var(--g);transform:scaleX(0);transform-origin:left}
+.pct{font-size:36px;font-weight:900;color:var(--g);font-variant-numeric:tabular-nums}
+.okc{width:68px;height:68px;border-radius:50%;background:var(--gd);border:2px solid var(--g);color:var(--g);display:grid;place-items:center;font-size:34px;margin:6px auto 14px}
+.dl{display:flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;margin-top:18px;padding:14px;border-radius:10px;background:var(--g);color:#000;font-weight:800;font-size:16px}
+.dl svg{font-size:20px}
+.link{margin-top:12px;color:var(--mu);font-size:14px;text-decoration:underline;padding:8px}
+.link:hover{color:#fff}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#fff;color:#000;font-weight:700;font-size:14px;padding:11px 18px;border-radius:10px;z-index:100;max-width:90vw}
+.dragov{position:fixed;inset:0;z-index:40;background:rgba(57,255,20,.1);border:3px dashed var(--g);display:grid;place-items:center;font-size:22px;font-weight:800;color:var(--g);pointer-events:none}
+
+@media (max-width:640px){
+  .fname,.btn span{display:none}
+  .btn{padding:9px 11px}.export{padding:9px 14px}
+  .vol input{width:80px}
+  .modal{align-items:flex-end;padding:0}
+  .sheet{border-radius:20px 20px 0 0;width:100%;max-height:94%}
+  .pv{width:88px;height:88px}
+  .rb{min-width:56px;padding:7px 8px}
+  .hero-logo{width:70px;height:70px;border-radius:18px}
+}
+@media (max-height:560px){.vrow{margin-bottom:8px}.track{height:40px}.drop{min-height:200px}.hero-logo{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ResiZR logo (defined once, reused with <use>) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="lg" cx="50%" cy="50%" r="75%">
+      <stop offset="0" stop-color="#39ff14"/>
+      <stop offset=".55" stop-color="#32f012"/>
+      <stop offset="1" stop-color="#2a9a10"/>
+    </radialGradient>
+  </defs>
+  <symbol id="logo" viewBox="0 0 100 100">
+    <rect width="100" height="100" fill="url(#lg)"/>
+    <g fill="#000">
+      <path d="M0-29.5 11.5-7.5H5V29.5H-5V-7.5H-11.5Z" transform="translate(34.5 41.8) rotate(32)"/>
+      <path d="M0-29.5 11.5-7.5H5V29.5H-5V-7.5H-11.5Z" transform="translate(65.5 58.2) rotate(212)"/>
+    </g>
+  </symbol>
+</svg>
+
+<header class="top">
+  <div class="brand">
+    <span class="logo"><svg viewBox="0 0 100 100" role="img" aria-label="ResiZR logo"><use href="#logo"/></svg></span>
+    <span>Resi<b>ZR</b></span>
+  </div>
+  <div class="fname" id="fname"></div>
+  <div class="acts">
+    <button class="btn" id="newBtn" hidden title="Open another file"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg><span>New</span></button>
+    <button class="export" id="exportBtn" disabled><svg viewBox="0 0 24 24"><path d="M12 3l5 5h-3.5v7h-3V8H7l5-5zM5 19h14v2H5z"/></svg>Export</button>
+  </div>
+</header>
+
+<main id="landing">
+  <div class="hero-logo"><svg viewBox="0 0 100 100" role="img" aria-label="ResiZR logo"><use href="#logo"/></svg></div>
+  <h1>Stretch it. Squish it.<br><em>Never crop it.</em></h1>
+  <p class="sub">Drag the handles to freely deform your photo or video, or snap to 1:1, 16:9, 9:16 or 3:4. Every pixel stays in the frame.</p>
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a photo or video">
+    <div class="ic"><svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg></div>
+    <b>Drop a photo or video here</b>
+    <span>or click to browse your files</span>
+    <div class="pill">Choose file</div>
+  </div>
+  <div class="feats"><i>Free stretch</i><i>Aspect presets</i><i>No cropping</i><i>Timeline &amp; volume</i><i>480p → 4K</i><i>24–60 FPS</i></div>
+  <div class="priv">Everything is processed locally in your browser. Your files never leave your device.</div>
+  <input type="file" id="file" accept="image/*,video/*" hidden>
+</main>
+
+<section id="workspace" hidden>
+  <div class="stage" id="stage">
+    <div class="info"><span>Ratio <b id="iR"></b></span><span>↔ <b id="iH"></b> ↕ <b id="iV"></b></span></div>
+    <div class="box" id="box"><div class="media" id="media"></div></div>
+  </div>
+  <div class="ratios" id="ratios"></div>
+  <div class="vpanel" id="vpanel" hidden>
+    <div class="vrow">
+      <button class="play" id="playBtn" aria-label="Play / Pause"></button>
+      <div class="time"><b id="cur">0:00.0</b> <span>/ <span id="dur">0:00.0</span></span></div>
+      <div class="vol">
+        <button id="muteBtn" aria-label="Mute"></button>
+        <input type="range" id="vol" min="0" max="1" step="0.01" value="1" aria-label="Volume">
+      </div>
+    </div>
+    <div class="track" id="track"><div class="strip" id="strip"></div><div class="ph" id="ph"></div></div>
+  </div>
+</section>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Export">
+    <div class="sh"><h2>Export</h2><button class="x" id="mClose" aria-label="Close">✕</button></div>
+    <div class="sb">
+      <div id="vSet">
+        <div class="ext">
+          <div class="pv"><canvas id="exPrev" width="2" height="2"></canvas></div>
+          <div class="exi"><div class="n" id="exName"></div><div class="m" id="exMeta"></div></div>
+        </div>
+        <div class="field"><label>Resolution</label><div class="chips" id="resChips"></div></div>
+        <div class="field" id="fFps"><label>Frame rate (FPS)</label><div class="chips" id="fpsChips"></div></div>
+        <div class="field"><label>Format</label><div class="chips" id="fmtChips"></div></div>
+        <div class="field" id="fQ"><label>Quality</label><div class="qrow"><input type="range" id="qRange" min="0.4" max="1" step="0.01" value="0.92"><span id="qVal">92%</span></div></div>
+        <div class="note" id="exNote"></div>
+        <div class="note hl" id="exSafe" hidden></div>
+      </div>
+      <div id="vProg" class="center" hidden>
+        <div class="pct" id="pct">0%</div>
+        <div class="bar"><i id="barFill"></i></div>
+        <div class="note" id="pText">Preparing…</div>
+        <button class="link" id="cancelBtn">Cancel</button>
+      </div>
+      <div id="vDone" class="center" hidden>
+        <div class="okc"><svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></div>
+        <div style="font-size:20px;font-weight:800">Export complete</div>
+        <div class="note" id="doneInfo" style="margin-top:6px"></div>
+        <a class="dl" id="dlBtn" download><svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>Download File</a>
+        <button class="link" id="againBtn">Back to settings</button>
+      </div>
+    </div>
+    <div class="sf" id="mFoot"><button class="export" id="startExport"><svg viewBox="0 0 24 24"><path d="M12 3l5 5h-3.5v7h-3V8H7l5-5zM5 19h14v2H5z"/></svg>Export</button></div>
+  </div>
+</div>
+<div class="dragov" id="dragov" hidden>Drop to open file</div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s),clamp=(v,a,b)=>Math.min(Math.max(v,a),b),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const raf=requestAnimationFrame,caf=cancelAnimationFrame;
+// Low-end / mobile detection drives the "safe" encoder fallback
+const LOW=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform))||
+  (navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4);
+const IC={
+  play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  pause:'<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>',
+  vol:'<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>',
+  low:'<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg>',
+  mute:'<svg viewBox="0 0 24 24"><path d="M16.5 12A4.5 4.5 0 0 0 14 8v2.2l2.5 2.5zM19 12c0 .9-.2 1.8-.5 2.6l1.5 1.5A8.8 8.8 0 0 0 21 12a9 9 0 0 0-7-8.8v2.1A7 7 0 0 1 19 12zM4.3 3 3 4.3 7.7 9H3v6h4l5 5v-6.7l4.25 4.25c-.7.55-1.45.95-2.25 1.2v2.1a9 9 0 0 0 3.7-1.8L19.7 21 21 19.7l-9-9L4.3 3zM12 4 9.9 6.1 12 8.2z"/></svg>'
+};
+
+/* r = frame aspect (w/h), f = fraction of the stage the frame fills */
+const st={type:null,url:null,file:null,el:null,W:0,H:0,r0:1,r:1,f:1,lock:false,dur:0,vol:1,muted:false,id:0};
+const PAD=30,MIN=60;
+const landing=$('#landing'),workspace=$('#workspace'),stage=$('#stage'),box=$('#box'),media=$('#media'),ratiosEl=$('#ratios'),
+  vpanel=$('#vpanel'),exportBtn=$('#exportBtn'),newBtn=$('#newBtn'),fileIn=$('#file'),drop=$('#drop'),modal=$('#modal');
+let exporting=false,curTok=null,outUrl=null;
+
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),4200)}
+const fmtT=t=>{t=Math.max(0,t||0);const m=Math.floor(t/60),s=(t%60).toFixed(1);return m+':'+(s<10?'0':'')+s};
+const fmtSize=b=>b>1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';
+function freeOut(delay){ // release generated blob URL
+  if(!outUrl)return;const u=outUrl;outUrl=null;$('#dlBtn').removeAttribute('href');
+  delay?setTimeout(()=>URL.revokeObjectURL(u),delay):URL.revokeObjectURL(u);
+}
+function releaseMedia(el){if(!el)return;try{el.pause&&el.pause()}catch(e){}if(el.tagName==='VIDEO'){el.removeAttribute('src');el.load()}el.remove()}
+
+/* ================= Upload ================= */
+drop.onclick=()=>fileIn.click();
+drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fileIn.click()}};
+newBtn.onclick=()=>fileIn.click();
+fileIn.onchange=()=>{const f=fileIn.files[0];fileIn.value='';loadFile(f)};
+let dd=0;const hasF=e=>e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes('Files');
+addEventListener('dragenter',e=>{if(!hasF(e))return;e.preventDefault();dd++;drop.classList.add('drag');if(!workspace.hidden)$('#dragov').hidden=false});
+addEventListener('dragover',e=>{if(hasF(e))e.preventDefault()});
+addEventListener('dragleave',e=>{if(!hasF(e))return;dd=Math.max(0,dd-1);if(!dd){drop.classList.remove('drag');$('#dragov').hidden=true}});
+addEventListener('drop',e=>{if(!hasF(e))return;e.preventDefault();dd=0;drop.classList.remove('drag');$('#dragov').hidden=true;const f=e.dataTransfer.files[0];if(f&&!exporting)loadFile(f)});
+
+async function loadFile(file){
+  if(!file||exporting)return;
+  const isV=file.type.startsWith('video/'),isI=file.type.startsWith('image/');
+  if(!isV&&!isI){toast('Please choose a photo or video file.');return}
+  const id=++st.id,url=URL.createObjectURL(file);let el,W,H;
+  try{
+    if(isI){
+      el=new Image();el.decoding='async';el.draggable=false;
+      await new Promise((ok,no)=>{el.onload=ok;el.onerror=no;el.src=url});
+      W=el.naturalWidth;H=el.naturalHeight;
+    }else{
+      el=document.createElement('video');el.playsInline=true;el.setAttribute('playsinline','');el.preload='auto';
+      await new Promise((ok,no)=>{el.onloadedmetadata=ok;el.onerror=no;el.src=url});
+      W=el.videoWidth;H=el.videoHeight;if(!W||!H)throw 0;
+    }
+  }catch(e){URL.revokeObjectURL(url);toast('This file could not be opened (unsupported format).');return}
+  if(id!==st.id){URL.revokeObjectURL(url);return}
+  releaseMedia(st.el);if(st.url)URL.revokeObjectURL(st.url);freeOut();
+  Object.assign(st,{type:isV?'video':'image',url,file,el,W,H,r0:W/H,r:W/H,f:1,dur:isV?el.duration:0});
+  media.appendChild(el);
+  landing.hidden=true;workspace.hidden=false;newBtn.hidden=false;exportBtn.disabled=false;
+  $('#fname').textContent=file.name;
+  buildRatios();vpanel.hidden=!isV;
+  if(isV)initVideo(id);
+  layout();
+}
+
+/* ================= Stretch box ================= */
+const area=()=>({aw:Math.max(MIN,stage.clientWidth-PAD*2),ah:Math.max(MIN,stage.clientHeight-PAD*2)});
+function layout(){
+  if(!st.el||exporting)return;
+  const {aw,ah}=area(),r=st.r;let fw,fh;
+  if(aw/ah>r){fh=ah;fw=ah*r}else{fw=aw;fh=aw/r}
+  box.style.width=Math.max(2,Math.round(fw*st.f))+'px';
+  box.style.height=Math.max(2,Math.round(fh*st.f))+'px';
+  updateInfo();
+}
+let lf=0;new ResizeObserver(()=>{caf(lf);lf=raf(layout)}).observe(stage);
+
+let rbs=[];
+const same=(a,b)=>Math.abs(a-b)<.003;
+function ratioText(){
+  const r=st.r,p=PRESETS.find(p=>p.a&&same(p.a/p.b,r));
+  if(p)return p.id;if(same(r,st.r0))return 'Original';
+  return r>=1?r.toFixed(2)+':1':'1:'+(1/r).toFixed(2);
+}
+function updateInfo(){
+  const k=Math.sqrt(st.r/st.r0);
+  $('#iR').textContent=ratioText();$('#iH').textContent=Math.round(k*100)+'%';$('#iV').textContent=Math.round(100/k)+'%';
+  rbs.forEach(b=>b.el.classList.toggle('on',same(b.r,st.r)));
+}
+
+['nw','n','ne','e','se','s','sw','w'].forEach(h=>{const d=document.createElement('div');d.className='h '+h;d.dataset.h=h;box.appendChild(d)});
+let drag=null,df=0;
+box.addEventListener('pointerdown',e=>{
+  const hd=e.target.dataset&&e.target.dataset.h;if(!hd||(e.button&&e.button!==0))return;
+  e.preventDefault();box.classList.remove('anim');
+  const rc=box.getBoundingClientRect();
+  drag={h:hd,sx:e.clientX,sy:e.clientY,cx:e.clientX,cy:e.clientY,bw:rc.width,bh:rc.height,el:e.target,sh:e.shiftKey};
+  e.target.classList.add('act');box.setPointerCapture(e.pointerId);
+});
+box.addEventListener('pointermove',e=>{if(!drag)return;drag.cx=e.clientX;drag.cy=e.clientY;drag.sh=e.shiftKey;if(!df)df=raf(applyDrag)}); // batched: one layout per frame
+function applyDrag(){
+  df=0;if(!drag)return;
+  const {aw,ah}=area(),hd=drag.h,dx=drag.cx-drag.sx,dy=drag.cy-drag.sy;
+  let nw=drag.bw,nh=drag.bh;
+  if(hd.includes('e'))nw+=2*dx;if(hd.includes('w'))nw-=2*dx;   // frame stays centred
+  if(hd.includes('s'))nh+=2*dy;if(hd.includes('n'))nh-=2*dy;
+  if(st.lock||drag.sh){
+    const kx=/[ew]/.test(hd)?nw/drag.bw:null,ky=/[ns]/.test(hd)?nh/drag.bh:null;
+    let k=kx===null?ky:ky===null?kx:(Math.abs(kx-1)>=Math.abs(ky-1)?kx:ky);
+    k=clamp(k,Math.max(MIN/drag.bw,MIN/drag.bh),Math.min(aw/drag.bw,ah/drag.bh));nw=drag.bw*k;nh=drag.bh*k;
+  }else{nw=clamp(nw,MIN,aw);nh=clamp(nh,MIN,ah)}
+  st.r=nw/nh;st.f=Math.max(nw/aw,nh/ah);
+  box.style.width=Math.round(nw)+'px';box.style.height=Math.round(nh)+'px';updateInfo();
+}
+const endDrag=()=>{if(!drag)return;drag.el.classList.remove('act');drag=null;caf(df);df=0;layout()};
+box.addEventListener('pointerup',endDrag);box.addEventListener('pointercancel',endDrag);
+media.onclick=()=>{if(st.type==='video')togglePlay()};
+
+/* ================= Presets ================= */
+const PRESETS=[{id:'orig',l:'Original'},{id:'1:1',a:1,b:1},{id:'16:9',a:16,b:9},{id:'9:16',a:9,b:16},{id:'3:4',a:3,b:4},{id:'4:3',a:4,b:3},{id:'21:9',a:21,b:9}];
+function mkBtn(cls,ico,label,fn){
+  const b=document.createElement('button');b.className='rb '+cls;
+  b.innerHTML=`<span class="rbi">${ico}</span><span>${label}</span>`;b.onclick=fn;ratiosEl.appendChild(b);return b;
+}
+const sep=()=>{const s=document.createElement('div');s.className='sep';ratiosEl.appendChild(s)};
+function buildRatios(){
+  ratiosEl.innerHTML='';rbs=[];
+  PRESETS.forEach((p,i)=>{
+    if(i===1)sep();
+    const o=p.id==='orig',a=o?st.W:p.a,b=o?st.H:p.b,m=20,w=a>=b?m:m*a/b,h=a>=b?m*b/a:m,r=o?st.r0:p.a/p.b;
+    const el=mkBtn('',`<i class="ri" style="width:${w}px;height:${h}px"></i>`,p.l||p.id,()=>setRatio(r));
+    rbs.push({el,r});
+  });
+  sep();
+  const lk=mkBtn('dim','<svg viewBox="0 0 24 24" style="font-size:20px"><path d="M18 8h-1V6a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM9 6a3 3 0 0 1 6 0v2H9V6z"/></svg>','Lock',()=>{st.lock=!st.lock;lk.classList.toggle('on',st.lock);lk.classList.toggle('dim',!st.lock)});
+  lk.title='Keep ratio while dragging (or hold Shift)';
+  mkBtn('dim','<svg viewBox="0 0 24 24" style="font-size:20px"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>','Reset',()=>setRatio(st.r0));
+}
+function setRatio(r){
+  st.r=r;st.f=1;box.classList.add('anim');layout();setTimeout(()=>box.classList.remove('anim'),300);
+}
+
+/* ================= Video controls ================= */
+const playBtn=$('#playBtn'),muteBtn=$('#muteBtn'),volIn=$('#vol'),track=$('#track'),strip=$('#strip'),ph=$('#ph'),curT=$('#cur');
+let loopId=0,scrub=false,wasPl=false,sx=0,sf=0,lastTxt='';
+
+function initVideo(id){
+  const v=st.el;st.vol=1;st.muted=false;setVolUI();
+  playBtn.innerHTML=IC.play;$('#dur').textContent=fmtT(v.duration);
+  try{v.currentTime=.001}catch(e){}
+  syncTime();
+  v.addEventListener('play',()=>{playBtn.innerHTML=IC.pause;caf(loopId);loop()});
+  const stop=()=>{playBtn.innerHTML=IC.play;caf(loopId);syncTime()};
+  v.addEventListener('pause',stop);v.addEventListener('ended',stop);v.addEventListener('seeked',syncTime);
+  setTimeout(()=>buildStrip(id),60);
+}
+function loop(){syncTime();loopId=raf(loop)}
+function syncTime(){
+  const v=st.el;if(!v||st.type!=='video')return;
+  const d=v.duration||0;ph.style.left=(d?clamp(v.currentTime/d,0,1)*100:0)+'%';
+  const t=fmtT(v.currentTime);if(t!==lastTxt){lastTxt=t;curT.textContent=t}
+}
+playBtn.onclick=togglePlay;
+function togglePlay(){
+  const v=st.el;if(!v||st.type!=='video'||exporting)return;
+  if(v.paused||v.ended){if(v.ended||v.currentTime>=v.duration-.05)v.currentTime=0;v.play().catch(()=>{})}else v.pause();
+}
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&!workspace.hidden&&st.type==='video'&&modal.hidden&&!/INPUT|BUTTON|A/.test(document.activeElement.tagName)){e.preventDefault();togglePlay()}
+  if(e.key==='Escape'&&!modal.hidden&&!exporting)closeModal();
+});
+function seekNow(){sf=0;const v=st.el,r=track.getBoundingClientRect();v.currentTime=clamp((sx-r.left)/r.width,0,1)*(v.duration||0);syncTime()}
+const seekReq=e=>{sx=e.clientX;if(!sf)sf=raf(seekNow)}; // throttled to one seek per frame
+track.addEventListener('pointerdown',e=>{if(st.type!=='video')return;scrub=true;wasPl=!st.el.paused;st.el.pause();track.setPointerCapture(e.pointerId);seekReq(e)});
+track.addEventListener('pointermove',e=>{if(scrub)seekReq(e)});
+const endScrub=()=>{if(!scrub)return;scrub=false;if(wasPl)st.el.play().catch(()=>{})};
+track.addEventListener('pointerup',endScrub);track.addEventListener('pointercancel',endScrub);
+
+function setVolUI(){
+  const v=st.el,eff=st.muted?0:st.vol;
+  if(v){v.volume=st.vol;v.muted=st.muted}
+  muteBtn.innerHTML=eff===0?IC.mute:eff<.5?IC.low:IC.vol;
+  volIn.value=eff;volIn.style.setProperty('--p',eff*100+'%');
+}
+volIn.oninput=()=>{st.vol=parseFloat(volIn.value);st.muted=st.vol===0;setVolUI()};
+muteBtn.onclick=()=>{if(st.muted||st.vol===0){st.muted=false;if(st.vol===0)st.vol=.5}else st.muted=true;setVolUI()};
+
+async function buildStrip(id){ // thumbnails drawn straight into tiny canvases (no data-URL encoding)
+  strip.innerHTML='';
+  const n=clamp(Math.round(track.clientWidth/72)||8,6,12),cells=[];
+  const ch=Math.max(24,Math.round(track.clientHeight)),cw=Math.max(24,Math.round(track.clientWidth/n));
+  for(let i=0;i<n;i++){const c=document.createElement('canvas');c.width=cw;c.height=ch;strip.appendChild(c);cells.push(c)}
+  const tv=document.createElement('video');
+  try{
+    tv.muted=true;tv.playsInline=true;tv.preload='auto';tv.src=st.url;
+    await new Promise((ok,no)=>{tv.onloadeddata=ok;tv.onerror=no;setTimeout(ok,4000)});
+    const sw=tv.videoWidth,sh=tv.videoHeight,ca=cw/ch;
+    let cw2=sw,ch2=sh;if(sw/sh>ca)cw2=sh*ca;else ch2=sw/ca;
+    for(let i=0;i<n;i++){
+      if(id!==st.id||exporting)break;
+      await new Promise(ok=>{let d=0;const f=()=>{if(!d){d=1;ok()}};tv.onseeked=f;setTimeout(f,1500);tv.currentTime=(tv.duration||0)*(i+.5)/n});
+      const x=cells[i].getContext('2d');
+      x.drawImage(tv,Math.round((sw-cw2)/2),Math.round((sh-ch2)/2),Math.round(cw2),Math.round(ch2),0,0,cw,ch);
+      await sleep(0);
+    }
+  }catch(e){}
+  tv.removeAttribute('src');tv.load();
+}
+
+/* ================= Export settings ================= */
+const RES_V=[{v:480,l:'480p'},{v:720,l:'720p'},{v:1080,l:'1080p'},{v:1440,l:'2K'},{v:2160,l:'4K'}];
+const RES_I=[{v:0,l:'Original'},...RES_V];
+const FPS=[24,30,50,60].map(v=>({v,l:''+v}));
+const CAND={
+  mp4:['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4;codecs=avc1','video/mp4'],
+  webm:['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm;codecs=vp9','video/webm']
+};
+const SAFE_WEBM=['video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm']; // lighter encoder for weak devices
+const pickMime=(f,safe)=>window.MediaRecorder?((safe&&f==='webm'?SAFE_WEBM:CAND[f]).find(m=>MediaRecorder.isTypeSupported(m))||null):null;
+const ex={resV:1080,resI:0,fps:30,fmtV:'mp4',fmtI:'jpeg',q:.92};
+const isV=()=>st.type==='video';
+
+function chips(el,opts,get,set){
+  const draw=()=>{el.innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.className='chip'+(get()===o.v?' on':'');b.textContent=o.l;
+    b.onclick=()=>{set(o.v);draw();refreshMeta()};el.appendChild(b)})};
+  draw();
+}
+function openExport(){
+  if(!st.el||exporting)return;
+  const v=isV();
+  if(v){
+    st.el.pause();
+    if(!window.MediaRecorder){toast('Video export is not supported by this browser. Try Chrome, Edge, Safari 14.1+ or Firefox.');return}
+    const fm=['mp4','webm'].filter(f=>pickMime(f,false));
+    if(!fm.length){toast('Your browser cannot record video.');return}
+    if(!fm.includes(ex.fmtV))ex.fmtV=fm[0];
+    chips($('#resChips'),RES_V,()=>ex.resV,x=>ex.resV=x);
+    chips($('#fpsChips'),FPS,()=>ex.fps,x=>ex.fps=x);
+    chips($('#fmtChips'),fm.map(f=>({v:f,l:f==='mp4'?'MP4':'WebM'})),()=>ex.fmtV,x=>ex.fmtV=x);
+    $('#fQ').hidden=true;
+  }else{
+    const t=st.file.type;ex.fmtI=t==='image/png'?'png':t==='image/webp'?'webp':'jpeg';
+    chips($('#resChips'),RES_I,()=>ex.resI,x=>ex.resI=x);
+    chips($('#fmtChips'),[{v:'png',l:'PNG'},{v:'jpeg',l:'JPG'},{v:'webp',l:'WebP'}],()=>ex.fmtI,x=>{ex.fmtI=x;$('#fQ').hidden=x==='png'});
+    $('#fQ').hidden=ex.fmtI==='png';
+  }
+  $('#fFps').hidden=!v;$('#exName').textContent=st.file.name;
+  drawPreview();refreshMeta();setView('set');modal.hidden=false;
+}
+$('#qRange').oninput=e=>{ex.q=+e.target.value;$('#qVal').textContent=Math.round(ex.q*100)+'%';e.target.style.setProperty('--p',(ex.q-.4)/.6*100+'%')};
+$('#qRange').style.setProperty('--p','86.6%');
+
+function drawPreview(){ // drawn once when the dialog opens – never during rendering
+  const c=$('#exPrev'),r=st.r,m=200;
+  c.width=r>=1?m:Math.max(2,Math.round(m*r));c.height=r>=1?Math.max(2,Math.round(m/r)):m;
+  c.getContext('2d').drawImage(st.el,0,0,c.width,c.height);
+  c.style.width=r>=1?'100%':'auto';c.style.height=r>=1?'auto':'100%';c.style.aspectRatio=r;
+}
+function outDims(res,v){
+  const r=st.r;let w,h;
+  if(!res){if(r>=st.r0){h=st.H;w=st.H*r}else{w=st.W;h=st.W/r}}
+  else if(r>=1){h=res;w=res*r}else{w=res;h=res/r}
+  const side=v?7680:8192,px=v?11e6:(LOW?16.7e6:67e6);
+  let k=Math.min(1,side/Math.max(w,h),Math.sqrt(px/(w*h)));w*=k;h*=k;
+  w=Math.max(2,Math.round(w));h=Math.max(2,Math.round(h));
+  if(v){w=Math.max(2,Math.floor(w/2)*2);h=Math.max(2,Math.floor(h/2)*2)}
+  return{w,h};
+}
+function plan(){
+  const v=isV(),{w,h}=outDims(v?ex.resV:ex.resI,v);
+  if(!v)return{w,h};
+  const safe=LOW&&Math.min(w,h)>1080; // 2K/4K on mobile/low-end → conservative encoder + capped bitrate
+  let fmt=ex.fmtV,mime=pickMime(fmt,safe);
+  if(!mime){fmt=fmt==='mp4'?'webm':'mp4';mime=pickMime(fmt,safe)}
+  const cap=safe?(Math.min(w,h)>=2160?14e6:9e6):(LOW?12e6:50e6);
+  const bps=Math.round(clamp(w*h*ex.fps*.07,1.2e6,cap));
+  return{w,h,mime,fmt,bps,safe};
+}
+function refreshMeta(){
+  const v=isV(),p=plan(),k=Math.sqrt(st.r/st.r0);
+  let t=`<b>${p.w} × ${p.h}</b> px<br>Ratio ${ratioText()} · ↔${Math.round(k*100)}% ↕${Math.round(100/k)}%`;
+  t+=v?`<br>${ex.fps} fps · ${p.fmt.toUpperCase()} · ${fmtT(st.dur)} · audio ${Math.round((st.muted?0:st.vol)*100)}%`:`<br>${ex.fmtI==='jpeg'?'JPG':ex.fmtI.toUpperCase()}`;
+  $('#exMeta').innerHTML=t;
+  const n=$('#exNote'),s=$('#exSafe');let msg='';
+  if(v){msg='The whole frame is stretched to the output size (nothing is cropped). Rendering runs in real time (about '+fmtT(st.dur).replace(/\.\d/,'')+'); keep this tab open.'}
+  if(p.w*p.h>st.W*st.H*1.5)msg='Output has more pixels than the source, so it will be upscaled. '+msg;
+  n.textContent=msg;
+  s.hidden=!(v&&p.safe);
+  if(v&&p.safe)s.textContent='Safe mode: on this device, '+(ex.resV>=2160?'4K':'2K')+' uses a lightweight encoder ('+p.mime.split(';')[0].split('/')[1].toUpperCase()+(p.mime.includes('vp8')?' / VP8':' / H.264')+') and a capped bitrate ('+(p.bps/1e6).toFixed(1)+' Mbps) so the hardware encoder does not lock up.';
+}
+
+function setView(v){$('#vSet').hidden=v!=='set';$('#vProg').hidden=v!=='prog';$('#vDone').hidden=v!=='done';$('#mFoot').hidden=v!=='set'}
+function closeModal(){if(exporting&&curTok)curTok.cancel();modal.hidden=true;freeOut(20000)}
+exportBtn.onclick=openExport;$('#mClose').onclick=closeModal;
+modal.addEventListener('pointerdown',e=>{if(e.target===modal&&!exporting)closeModal()});
+$('#cancelBtn').onclick=()=>{if(curTok)curTok.cancel()};
+$('#againBtn').onclick=()=>{freeOut(20000);setView('set')};
+$('#startExport').onclick=startExport;
+
+let lastPct=-1;
+function setProg(p,txt){
+  p=clamp(p||0,0,1);const pc=Math.round(p*100);
+  if(pc!==lastPct){lastPct=pc;$('#pct').textContent=pc+'%';$('#barFill').style.transform='scaleX('+p+')'} // transform: no layout
+  if(txt)$('#pText').textContent=txt;
+}
+
+async function startExport(){
+  if(exporting)return;
+  const v=isV(),tok={cancelled:false,hook:null,cancel(){this.cancelled=true;this.hook&&this.hook()}};
+  curTok=tok;exporting=true;lastPct=-1;freeOut();
+  document.body.classList.add('busy');         // hides the editor: no preview rendering / DOM work while exporting
+  caf(loopId);caf(df);if(v)st.el.pause();
+  setView('prog');setProg(0,'Preparing…');
+  let ac=null,wl=null;
+  if(v){try{ac=new(window.AudioContext||window.webkitAudioContext)();ac.resume&&ac.resume()}catch(e){ac=null}}
+  try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>wl=l).catch(()=>{})}catch(e){}
+  try{
+    const p=plan();let blob;
+    if(v){
+      blob=await renderVideo({...p,fps:ex.fps,vol:st.muted?0:st.vol},tok,ac,x=>setProg(x,'Rendering video… keep this tab open'));
+    }else{
+      setProg(.3,'Rendering image…');await sleep(30);
+      blob=await renderImage(p.w,p.h,ex.fmtI,ex.q);setProg(1,'Done');
+    }
+    const t=blob.type,ext=t.includes('mp4')?'mp4':t.includes('webm')?'webm':t.includes('png')?'png':t.includes('webp')?'webp':'jpg';
+    outUrl=URL.createObjectURL(blob);
+    const a=$('#dlBtn');a.href=outUrl;a.download=`${st.file.name.replace(/\.[^.]+$/,'')}_resizr_${p.w}x${p.h}.${ext}`;
+    $('#doneInfo').textContent=`${p.w} × ${p.h} · ${ext.toUpperCase()} · ${fmtSize(blob.size)}`;
+    setView('done');
+  }catch(err){
+    if(!tok.cancelled){console.error(err);toast('Export failed: '+(err&&err.message||'unknown error'))}
+    setView('set');
+  }finally{
+    exporting=false;curTok=null;document.body.classList.remove('busy');
+    if(wl)wl.release().catch(()=>{});
+    if(ac&&ac.state!=='closed')ac.close().catch(()=>{});
+    layout();
+  }
+}
+
+/* ================= Render engines ================= */
+async function renderImage(w,h,fmt,q){
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const x=c.getContext('2d',{alpha:fmt!=='jpeg'});
+  x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
+  if(fmt==='jpeg'){x.fillStyle='#fff';x.fillRect(0,0,w,h)}
+  x.drawImage(st.el,0,0,st.W,st.H,0,0,w,h);
+  const blob=await new Promise(r=>c.toBlob(r,'image/'+fmt,q));
+  c.width=c.height=0; // free the backing store immediately
+  if(!blob)throw new Error('Image too large for this device. Choose a lower resolution.');
+  return blob;
+}
+
+async function renderVideo(o,tok,ac,onProg){
+  const {w,h,fps,mime,bps,vol}=o;
+  // Internal detached canvas: never attached to the DOM, so nothing is drawn twice on the visible UI
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  const cx=cv.getContext('2d',{alpha:false,desynchronized:true,willReadFrequently:false}); // GPU-accelerated, low-latency
+  cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality=(LOW&&w*h>2.2e6)?'low':'medium';
+  const v=document.createElement('video');
+  v.playsInline=true;v.setAttribute('playsinline','');v.preload='auto';v.src=st.url;
+  v.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+  document.body.appendChild(v);
+  let rafId=0,stream=null,rec=null,visH=null;
+  const chunks=[],guard=p=>(p.catch(()=>{}),p);
+  const cancelled=new Promise(r=>{tok.hook=r});
+  try{
+    await new Promise((ok,no)=>{
+      if(v.readyState>=2)return ok();
+      v.addEventListener('loadeddata',ok,{once:true});
+      v.addEventListener('error',()=>no(new Error('Could not load the video')),{once:true});
+    });
+    if(tok.cancelled)throw new Error('cancelled');
+
+    let at=[];
+    if(ac){
+      try{
+        const src=ac.createMediaElementSource(v),g=ac.createGain(),d=ac.createMediaStreamDestination();
+        g.gain.value=vol;src.connect(g);g.connect(d); // silent to speakers, volume applied
+        at=d.stream.getAudioTracks();
+      }catch(e){v.muted=true}
+    }else v.muted=true;
+
+    const sw=v.videoWidth,sh=v.videoHeight;
+    // manual frame pushing (captureStream(0)+requestFrame) → exact FPS control; falls back to captureStream(fps)
+    stream=cv.captureStream(0);
+    let track=stream.getVideoTracks()[0];
+    const manual=!!(track&&track.requestFrame);
+    if(!manual){stream.getTracks().forEach(t=>t.stop());stream=cv.captureStream(fps);track=null}
+    at.forEach(t=>stream.addTrack(t));
+    const draw=()=>{cx.drawImage(v,0,0,sw,sh,0,0,w,h);if(manual)track.requestFrame()}; // integer coords only
+    cx.drawImage(v,0,0,sw,sh,0,0,w,h);
+
+    try{rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:bps,audioBitsPerSecond:128000})}
+    catch(e){rec=new MediaRecorder(stream,{mimeType:mime})}
+    rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+    const stopped=new Promise(r=>{rec.onstop=r});
+    const ended=new Promise(r=>{v.onended=r});
+    const failed=guard(new Promise((_,no)=>{rec.onerror=e=>no(e.error||new Error('Recorder error'))}));
+    let stallRej;const stall=guard(new Promise((_,no)=>{stallRej=no}));
+
+    // background tab: pause video + recorder together so the output has no frozen gaps
+    let lastMove=performance.now();
+    visH=()=>{
+      if(!rec||rec.state==='inactive'||v.ended)return;
+      if(document.hidden){try{rec.pause()}catch(e){}v.pause();$('#pText').textContent='Paused – return to this tab to continue'}
+      else{try{rec.resume()}catch(e){}lastMove=performance.now();v.play().catch(()=>{});$('#pText').textContent='Rendering video… keep this tab open'}
+    };
+    document.addEventListener('visibilitychange',visH);
+
+    rec.start(1000);
+    try{await v.play()}catch(e){v.muted=true;await v.play();toast('Autoplay blocked: audio may be missing.')}
+
+    // rAF throttled to the target FPS (accumulator, no busy loop)
+    const iv=1000/fps;let due=0,lastCT=-1,lastUi=0;
+    const tick=t=>{
+      rafId=raf(tick);
+      if(t+1<due)return;
+      due=(t-due>iv)?t+iv:due+iv;
+      draw();
+      if(t-lastUi>200){lastUi=t;onProg(v.duration?v.currentTime/v.duration:0)}
+      if(v.currentTime!==lastCT){lastCT=v.currentTime;lastMove=t}
+      else if(t-lastMove>12000&&!v.paused)stallRej(new Error('Playback stalled – try a lower resolution or FPS.'));
+    };
+    rafId=raf(tick);
+
+    await Promise.race([ended,cancelled,failed,stall]);
+    caf(rafId);
+    if(tok.cancelled){try{rec.stop()}catch(e){}throw new Error('cancelled')}
+    draw();onProg(1);
+    await sleep(200);
+    if(rec.state==='paused')try{rec.resume()}catch(e){}
+    rec.stop();await stopped;
+    const blob=new Blob(chunks,{type:mime.split(';')[0]});
+    if(!blob.size)throw new Error('Nothing was recorded.');
+    return blob;
+  }finally{
+    caf(rafId);
+    if(visH)document.removeEventListener('visibilitychange',visH);
+    try{if(rec&&rec.state!=='inactive')rec.stop()}catch(e){}
+    chunks.length=0;                                      // drop chunk references (the Blob owns the data)
+    if(stream)stream.getTracks().forEach(t=>t.stop());
+    try{v.pause()}catch(e){}
+    v.removeAttribute('src');v.load();v.remove();         // release the decoder
+    cv.width=cv.height=0;                                 // release the GPU/backing buffer
+  }
+}
+})();
+</script>
+</body>
+</html>
